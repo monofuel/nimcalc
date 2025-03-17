@@ -44,3 +44,11 @@ suite "nimcalc":
       echo "Simplified Math String: ", problem[0], " -> ", simplifiedMathString
       check simplifiedMathString == problem[1]
 
+  test "decimal":
+    let testProblems = [
+      ("(1/2) + (1/5)", "0.7")
+    ]
+    for problem in testProblems:
+      let ast = parseExpression(problem[0])
+      let decimalAst = toDecimal(ast)
+      let decimalMathString = toMathString(decimalAst)
