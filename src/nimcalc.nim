@@ -31,7 +31,7 @@ proc newVar(name: string): CalcNode =
   CalcNode(kind: akVar, varName: name)
 
 proc newBinary(kind: BinaryKind, left, right: CalcNode): CalcNode =
-  result = CalcNode(kind: AstKind(kind))  # Set kind first
+  result = CalcNode(kind: AstKind(kind))
   case kind
   of bkAdd: result.left = left; result.right = right
   of bkMul: result.left = left; result.right = right
@@ -40,19 +40,17 @@ proc newBinary(kind: BinaryKind, left, right: CalcNode): CalcNode =
   of bkEq:  result.left = left; result.right = right
 
 proc parseExpression*(expr: string): CalcNode =
-  ## Parse a mathematical expression into an AST
+  ## Parse a mathematical expression into an AST (exported)
   let cleanedExpr = expr.replace(" ", "")
   if cleanedExpr.len == 0:
     return nil
 
-  # Check for equality (lowest precedence)
   let eqParts = cleanedExpr.split('=')
   if eqParts.len == 2:
     let left = parseExpression(eqParts[0])
     let right = parseExpression(eqParts[1])
     return newBinary(bkEq, left, right)
 
-  # Check for addition or subtraction
   for i in countdown(cleanedExpr.high, 0):
     if cleanedExpr[i] == '+' and i > 0:
       let left = parseExpression(cleanedExpr[0..<i])
@@ -63,7 +61,6 @@ proc parseExpression*(expr: string): CalcNode =
       let right = parseExpression(cleanedExpr[i+1..^1])
       return newBinary(bkSub, left, right)
 
-  # Check for multiplication or division
   for i in countdown(cleanedExpr.high, 0):
     if cleanedExpr[i] == '*' and i > 0:
       let left = parseExpression(cleanedExpr[0..<i])
@@ -74,26 +71,23 @@ proc parseExpression*(expr: string): CalcNode =
       let right = parseExpression(cleanedExpr[i+1..^1])
       return newBinary(bkDiv, left, right)
 
-  # Base case: number or variable
   if cleanedExpr.len > 0:
-    # Check if it's a coefficient with a variable (e.g., "5x")
     for i in 0..<cleanedExpr.len:
       if cleanedExpr[i].isAlphaAscii:
         if i == 0:
-          return newVar(cleanedExpr)  # Just a variable, e.g., "x"
+          return newVar(cleanedExpr)
         else:
           let coefStr = cleanedExpr[0..<i]
           let varName = cleanedExpr[i..^1]
           let coef = newNum(parseFloat(coefStr))
           let varNode = newVar(varName)
           return newBinary(bkMul, coef, varNode)
-    # If no letters, it's a number
     return newNum(parseFloat(cleanedExpr))
 
   return nil
 
 proc `$`*(node: CalcNode): string =
-  ## Pretty Print a CalcNode
+  ## Pretty Print a CalcNode as a tree (exported)
   if node.isNil:
     return "nil"
   case node.kind
@@ -111,3 +105,33 @@ proc `$`*(node: CalcNode): string =
     result = "Div\n  L: " & $node.left & "\n  R: " & $node.right
   of akEq:
     result = "Eq\n  L: " & $node.left & "\n  R: " & $node.right
+
+proc toMathString*(node: CalcNode): string =
+  ## Convert a CalcNode AST back to a mathematical expression
+  if node.isNil:
+    return ""
+  case node.kind
+  of akNum:
+    # Remove .0 from whole numbers for cleaner output
+    if node.numValue == float(int(node.numValue)):
+      result = $int(node.numValue)
+    else:
+      result = $node.numValue
+  of akVar:
+    result = node.varName
+  of akAdd:
+    result = toMathString(node.left) & " + " & toMathString(node.right)
+  of akMul:
+    # Special case: omit * for coefficient-variable pairs (e.g., "5x" not "5 * x")
+    let leftStr = toMathString(node.left)
+    let rightStr = toMathString(node.right)
+    if node.left.kind == akNum and node.right.kind == akVar:
+      result = leftStr & rightStr
+    else:
+      result = leftStr & " * " & rightStr
+  of akSub:
+    result = toMathString(node.left) & " - " & toMathString(node.right)
+  of akDiv:
+    result = toMathString(node.left) & " / " & toMathString(node.right)
+  of akEq:
+    result = toMathString(node.left) & " = " & toMathString(node.right)
