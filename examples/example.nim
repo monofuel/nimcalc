@@ -1,6 +1,7 @@
 import nimcalc
 
 let ast = parseExpression("(1/2) + (1/5)")
+echo "Original: ", toMathString(ast)
 let simplified = simplify(ast)
 
 # will print "7/10"
