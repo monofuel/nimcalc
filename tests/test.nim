@@ -2,18 +2,16 @@
 
 import std/unittest, nimcalc
 
-
-let testProblems = [
-  "1 + 1",
-  "2 * 2",
-  "3 / 3",
-  "4 - 4",
-  "5x + 10x",
-  "2x + 3 = y"
-]
-
 suite "nimcalc":
   test "parseExpression":
+    let testProblems = [
+      "1 + 1",
+      "2 * 2",
+      "3 / 3",
+      "4 - 4",
+      "5x + 10x",
+      "2x + 3 = y"
+    ]
     for problem in testProblems:
       let ast = parseExpression(problem)
       echo "AST: ", $ast
