@@ -1,6 +1,4 @@
-# nimcalc.nim
-import strutils  # For isAlphaAscii, replace, parseInt
-import math     # For gcd to simplify fractions
+import std/[strutils, math]
 
 type
   AstKind = enum
