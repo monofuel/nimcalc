@@ -8,7 +8,8 @@ suite "nimcalc":
       "3 / 3",
       "4 - 4",
       "5x + 10x",
-      "2x + 3 = y"
+      "2x + 3 = y",
+      "(1/2) + (1/5)"
     ]
     for problem in testProblems:
       let ast = parseExpression(problem)
@@ -22,7 +23,7 @@ suite "nimcalc":
       "3 / 3",
       "4 - 4",
       "5x + 10x",
-      "2x + 3 = y"
+      "2x + 3 = y",
     ]
     for problem in testProblems:
       let ast = parseExpression(problem)
@@ -34,6 +35,7 @@ suite "nimcalc":
     let testProblems = [
       ("1 + 2 + 3", "6"),
       ("5x + 2x", "7x"),
+      ("(1/2) + (1/5)", "7/10")
     ]
     for problem in testProblems:
       let ast = parseExpression(problem[0])
