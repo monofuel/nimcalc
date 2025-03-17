@@ -86,6 +86,33 @@ proc parseExpression*(expr: string): CalcNode =
 
   return nil
 
+proc simplify*(node: CalcNode): CalcNode =
+  if node.isNil:
+    return nil
+  case node.kind
+  of akNum, akVar:
+    return node  # Already simplified
+  of akAdd:
+    let left = simplify(node.left)
+    let right = simplify(node.right)
+    if left.kind == akNum and right.kind == akNum:
+      return newNum(left.numValue + right.numValue)  # Evaluate "1 + 2" → "3"
+    elif left.kind == akMul and right.kind == akMul and
+         left.right.kind == akVar and right.right.kind == akVar and
+         left.right.varName == right.right.varName:
+      # Combine "5x + 2x" → "7x"
+      return newBinary(bkMul, newNum(left.left.numValue + right.left.numValue), left.right)
+    return newBinary(bkAdd, left, right)  # No simplification possible
+  of akMul:
+    let left = simplify(node.left)
+    let right = simplify(node.right)
+    if left.kind == akNum and right.kind == akNum:
+      return newNum(left.numValue * right.numValue)  # Evaluate "2 * 3" → "6"
+    return newBinary(bkMul, left, right)
+  # Add cases for akSub, akDiv, akEq as needed
+  else:
+    return node
+
 proc `$`*(node: CalcNode): string =
   ## Pretty Print a CalcNode as a tree (exported)
   if node.isNil:
